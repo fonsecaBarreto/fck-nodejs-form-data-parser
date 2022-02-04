@@ -1,0 +1,34 @@
+{
+  "name": "fck-nodejs-formdata-parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "example": "ts-node-dev -r tsconfig-paths/register --inspect=0.0.0.0:7001 --respawn --transpile-only --ignore-watch node_modules --no-notify ./examples/index.ts",
+    "build": "tsc -p tsconfig-build.json",
+    "test": "jest --passWithNoTests --runInBand --no-cache --watch --silent"
+  },
+  "keywords": [],
+  "author": "",
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/formidable": "^2.0.4",
+    "@types/jest": "^27.0.3",
+    "@types/node": "^17.0.2",
+    "express": "^4.17.2",
+    "jest": "^27.4.5",
+    "ts-jest": "^27.1.2",
+    "ts-node-dev": "^1.1.8",
+    "tsconfig-paths": "^3.12.0",
+    "typescript": "^4.5.4"
+  },
+  "peerDependencies": {
+    "formidable": "^1.2.2"
+  },
+  "files": [
+    "/lib"
+  ]
+}
