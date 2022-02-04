@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request, Response} from 'express'
 import FormidableAdapter, { FormDataParser } from   "../src"
 import ExpressAdapter from "../src/ExpressAdapter"
 
@@ -19,7 +19,7 @@ const schema: FormDataParser.Schema = {
 const formDataParser = new FormidableAdapter(schema);
 const middleware = new ExpressAdapter(formDataParser)
 
-app.post("/", async (req, res) =>{
+app.post("/", async (req: Request, res: Response) =>{
 
     try{
         const result = await middleware.execute(req)
