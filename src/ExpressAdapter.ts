@@ -1,5 +1,5 @@
 import { Request , Response } from 'express'
-import { FormDataParser } from "../protocols";
+import { FormDataParser } from "./protocols";
 
 const FILE_ERROR_NAME = "InvalidFilesError"
 const INVALID_CONTENT_TYPE = "Conteúdo invalido para essa operação"
@@ -30,9 +30,9 @@ export class ExpressFormDataParserAdapter {
                     if(err) return reject(err);
 
                     const { files, conflicts } = this.formDataParser.getResult();
-                    console.log(files, conflicts)
                     
-                    if(Object.keys(conflicts).length > 0 ) return reject(new FileError(conflicts))
+                    if( Object.keys(conflicts).length > 0 || Object.keys(files).length == 0 ) return reject(new FileError(conflicts))
+
                     return resolve(files)
                });
           }) 

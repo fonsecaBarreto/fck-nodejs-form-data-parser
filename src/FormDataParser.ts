@@ -1,6 +1,6 @@
 
 import { Formidable, IncomingForm } from 'formidable'
-import { MakeInvalidFileMessage, MakeMissingFileMessage } from './presentation/messages';
+import { MakeInvalidFileMessage, MakeMissingFileMessage } from './messages';
 import { FormDataParser } from './protocols';
 
 export class FormidableAdapter implements FormDataParser{

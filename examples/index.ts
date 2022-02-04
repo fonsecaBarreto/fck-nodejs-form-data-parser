@@ -1,14 +1,19 @@
 import express from 'express'
 import FormidableAdapter, { FormDataParser } from   "../src"
-import ExpressAdapter, { ExpressFormDataParserAdapter  } from "../src/presentation"
+import ExpressAdapter from "../src/ExpressAdapter"
 
 const app = express();
 const schema: FormDataParser.Schema = {
         "image_test": {
-        types_allowed: ["image/png"],
-        max_size: 1e+7, // 10mb
-        optional: false
-    }
+            types_allowed: ["image/png"],
+            max_size: 1e+7, // 10mb
+            optional: false
+        },
+        "image_test2": {
+            types_allowed: ["image/jpeg"],
+            max_size: 1e+7, // 10mb
+            optional: false
+        }
 }
 
 const formDataParser = new FormidableAdapter(schema);
@@ -19,7 +24,7 @@ app.post("/", async (req, res) =>{
     try{
         const result = await middleware.execute(req)
         return res.json(result)
-    }catch(err){
+    }catch(err: any){
         if(err.name === 'InvalidFilesError'){
             const { message, name, params } = err
             return res.json({ message, name, params})
