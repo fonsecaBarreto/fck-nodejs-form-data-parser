@@ -22,15 +22,12 @@ export class ExpressFormDataParserAdapter {
 
           return new Promise( async (resolve, reject) => {
 
-               if(!request.is('multipart/form-data')) return reject(new FileError({ contentType:INVALID_CONTENT_TYPE}))
-        
+               if(!request.is('multipart/form-data')) return reject(new FileError({ contentType: [{ message: INVALID_CONTENT_TYPE }]}))
                const formidable = this.formDataParser.execute();
 
                formidable.parse(request, async (err: Error, fields:any) => {
                     if(err) return reject(err);
-
                     const { files, conflicts } = this.formDataParser.getResult();
-                    
                     if( Object.keys(conflicts).length > 0 || Object.keys(files).length == 0 ) return reject(new FileError(conflicts))
 
                     return resolve(files)

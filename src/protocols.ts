@@ -4,7 +4,7 @@ export namespace FormDataParser {
           types_allowed: string[],
           max_size: number,
           optional: boolean,
-          multiples?: boolean
+          count?: number
      }
      export type Schema = Record<string, SchemaProperties>
 
@@ -15,10 +15,10 @@ export namespace FormDataParser {
           size: number
           fileName:string
      }
-     export type Result = Record<string, FileResult[] | FileResult>
+     export type FileConflict = { message: string, fileName?: string  }
 
-     /* Error */
-     export type Conflicts = Record<string, string> 
+     export type Result = Record<string, FileResult[] >
+     export type Conflicts = Record<string, FileConflict[] > 
      
 }
 

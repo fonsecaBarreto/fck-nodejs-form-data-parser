@@ -7,12 +7,12 @@ const schema: FormDataParser.Schema = {
         "image_test": {
             types_allowed: ["image/png"],
             max_size: 1e+7, // 10mb
-            optional: false
+            optional: false,
         },
         "image_test2": {
             types_allowed: ["image/jpeg"],
             max_size: 1e+7, // 10mb
-            optional: false
+            optional: true
         }
 }
 

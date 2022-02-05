@@ -6,39 +6,40 @@ import { FormDataParser } from './protocols';
 export class FormidableAdapter implements FormDataParser{
 
     private readonly incommingform: any;
-    private results: any ={};
+    private results: FormDataParser.Result ={};
     private conflicts: FormDataParser.Conflicts = {};
 
     constructor(
         private readonly schema: FormDataParser.Schema
     ){
-
-        this.incommingform = new IncomingForm({ multiples: schema.multiples ? true : false });
+        this.incommingform = new IncomingForm({ multiples: Number(schema?.count) > 1  ? true : false });
     }
     execute(){
         this.results = {}
         this.conflicts = {}
         const fieldNames = Object.keys(this.schema);
-        var partCount: any = {}
 
         this.incommingform.onPart = (part:any) => {
 
             if (!part.filename || !part.mime ) { this.incommingform.handlePart(part); }     // it will not handle non-Files
             if ( part.mime && fieldNames.includes(part.name)) {                             // Only file with the name in the schema
 
-            const { types_allowed, max_size, multiples } = this.schema[part.name]
+            const { types_allowed, max_size, count = 1 } = this.schema[part.name]
 
-            var fileName = part.name;
+            var fileName = part.filename;
+            var name = part.name;
             var type = part.mime
 
-            this.results[fileName] = this.results[fileName] ?? [];
-            partCount[part.name]  = partCount[part.name] ? partCount[part.name] + 1 : 1
+            this.results[name] = this.results[name] ?? [];
+            this.conflicts[name] = this.conflicts[name] ?? [];
 
-            console.log(type)
+            /* Checar Tipo */
             if(!types_allowed.includes(type)) { 
-                this.conflicts[fileName] =  MakeInvalidFileMessage( types_allowed, max_size )
+                var new_conflict: FormDataParser.FileConflict = { fileName, message: MakeInvalidFileMessage( types_allowed, max_size )}
+                this.conflicts[name] = [  ...this.conflicts[name], new_conflict ];
             }
 
+            /*  */
             var buffer_array: any =[]
             var totalSize = 0
             var form: FormDataParser.FileResult = { buffer: null, contentType: part.mime, size: 0, fileName: part.filename }
@@ -46,13 +47,16 @@ export class FormidableAdapter implements FormDataParser{
             part.on('data', (buffer: Buffer) => {
                 buffer_array.push(buffer);
                 totalSize += buffer.length;
-                if(totalSize > max_size) this.conflicts[fileName] = MakeInvalidFileMessage( types_allowed, max_size ) ;
+                if(totalSize > max_size){ 
+                    var new_conflict: FormDataParser.FileConflict = { fileName, message: MakeInvalidFileMessage( types_allowed, max_size ) }
+                    this.conflicts[name] = [ ...this.conflicts[name], new_conflict ]
+                }
             });
             
             part.on('end', (data:any) =>{
                 form.buffer = Buffer.concat(buffer_array);
                 form.size = form.buffer.length;
-                this.results[fileName] = multiples ? [ ...this.results[part.name], form ] : form  
+                this.results[name] = [ ...this.results[name], form ] 
             })
         }
 
@@ -63,16 +67,27 @@ export class FormidableAdapter implements FormDataParser{
 
     getResult():{ files: FormDataParser.Result, conflicts: FormDataParser.Conflicts } {
 
-        var files = { ...this.results}; 
-        var conflicts = {...this.conflicts}; 
+        var files: any = {}; 
+        var conflicts: any = {}; 
 
         Object.keys(this.schema).map( key => {
-             const specs = this.schema[key]
-             if( !Object.keys(files).includes(key) && specs.optional !== true  ){
-                let conflictsAlreadyExists = Object.keys(conflicts).findIndex(v=>v==key)
-                if(!conflictsAlreadyExists) conflicts[key] = MakeMissingFileMessage(key);
-             }
+            const { optional } = this.schema[key];
+            if( !Object.keys(this.results).includes(key) && optional !== true  ){
+                let conflictsAlreadyExists = Object.keys(this.conflicts).findIndex(v=>v==key)
+                if(!conflictsAlreadyExists){ 
+                    this.conflicts[key] =[ { message: MakeMissingFileMessage(key)}];
+                }
+            }
         }) 
+
+
+        Object.keys(this.results).map(f=>{
+            if(this.results[f].length > 0){ files[f] = [ ...this.results[f] ] }
+        })
+
+        Object.keys(this.conflicts).map(c=>{
+            if(this.conflicts[c].length > 0){ conflicts[c] = [ ...this.conflicts[c] ] }
+        })
 
         return { files, conflicts };
    }
