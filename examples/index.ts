@@ -8,6 +8,7 @@ const schema: FormDataParser.Schema = {
             types_allowed: ["image/png"],
             max_size: 1e+7, // 10mb
             optional: false,
+            count: 3
         },
         "image_test2": {
             types_allowed: ["image/jpeg"],

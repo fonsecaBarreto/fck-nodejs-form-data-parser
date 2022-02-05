@@ -1,6 +1,6 @@
 
 import { Formidable, IncomingForm } from 'formidable'
-import { MakeInvalidFileMessage, MakeMissingFileMessage } from './messages';
+import { MakeFileLengthExceed, MakeInvalidFileMessage, MakeMissingFileMessage } from './messages';
 import { FormDataParser } from './protocols';
 
 export class FormidableAdapter implements FormDataParser{
@@ -12,17 +12,17 @@ export class FormidableAdapter implements FormDataParser{
     constructor(
         private readonly schema: FormDataParser.Schema
     ){
-        this.incommingform = new IncomingForm({ multiples: Number(schema?.count) > 1  ? true : false });
+        this.incommingform = new IncomingForm({ multiples: true });
     }
     execute(){
+
         this.results = {}
         this.conflicts = {}
-        const fieldNames = Object.keys(this.schema);
 
         this.incommingform.onPart = (part:any) => {
 
             if (!part.filename || !part.mime ) { this.incommingform.handlePart(part); }     // it will not handle non-Files
-            if ( part.mime && fieldNames.includes(part.name)) {                             // Only file with the name in the schema
+            if ( part.mime && Object.keys(this.schema).includes(part.name)) {                             // Only file with the name in the schema
 
             const { types_allowed, max_size, count = 1 } = this.schema[part.name]
 
@@ -54,9 +54,18 @@ export class FormidableAdapter implements FormDataParser{
             });
             
             part.on('end', (data:any) =>{
+
                 form.buffer = Buffer.concat(buffer_array);
                 form.size = form.buffer.length;
                 this.results[name] = [ ...this.results[name], form ] 
+
+                    
+                /* Checar quantidade  */
+                if(this.results[name].length > 0 && this.results[name].length > count){
+                    var new_conflict: FormDataParser.FileConflict = {  message: MakeFileLengthExceed(count)}
+                    this.conflicts[name] = [  new_conflict ];
+                }
+
             })
         }
 
@@ -72,14 +81,10 @@ export class FormidableAdapter implements FormDataParser{
 
         Object.keys(this.schema).map( key => {
             const { optional } = this.schema[key];
-            if( !Object.keys(this.results).includes(key) && optional !== true  ){
-                let conflictsAlreadyExists = Object.keys(this.conflicts).findIndex(v=>v==key)
-                if(!conflictsAlreadyExists){ 
-                    this.conflicts[key] =[ { message: MakeMissingFileMessage(key)}];
-                }
+            if( (!this.results[key] || this.results?.[key].length == 0) && optional !== true){
+                conflicts[key] =[ { message: MakeMissingFileMessage(key)}];
             }
         }) 
-
 
         Object.keys(this.results).map(f=>{
             if(this.results[f].length > 0){ files[f] = [ ...this.results[f] ] }

@@ -29,7 +29,6 @@ export class ExpressFormDataParserAdapter {
                     if(err) return reject(err);
                     const { files, conflicts } = this.formDataParser.getResult();
                     if( Object.keys(conflicts).length > 0 || Object.keys(files).length == 0 ) return reject(new FileError(conflicts))
-
                     return resolve(files)
                });
           }) 
